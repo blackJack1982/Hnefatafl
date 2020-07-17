@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 
 class Board():
-    def __init__(self, size: int):
+    def __init__(self, size : int):
         self.N : int = size
+        self.selected = None
         # create NXN board filled with '-'
         self.board : dict = { (i,j):'-' for i in range(11) for j in range(11) }         
         # Pre-positionning of the player's pieces
@@ -21,9 +22,20 @@ class Board():
             self.board[   5,   1 ] = 'B'
             self.board[ N-2,   5 ] = 'B'
             self.board[   5, N-2 ] = 'B'
+            self.board[   5,   5 ] = 'K'
         elif N == 9:
             print ("Not implemented yet")
             exit()
+
+    def select(self, i : int, j : int) -> bool:
+        if self.board[i,j] in 'BWK':
+            self.selected = ( i, j )    
+            return True
+        else:
+            return False
+
+    def move(self, i: int, j:int) -> bool:
+        pass
 
     def status(self) -> None:
         """
@@ -39,3 +51,19 @@ if __name__ == '__main__':
     N=11 #Size of the board NXN
     board = Board(N)
     board.status()
+    """
+    '-'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '-'
+    '-'  '-'  '-'  '-'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
+    '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+    'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
+    'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
+    'B'  'B'  '-'  'W'  'W'  'K'  'W'  'W'  '-'  'B'  'B'
+    'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
+    'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
+    '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+    '-'  '-'  '-'  '-'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
+    '-'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '-'
+    """
+    board.select(0,0) #returns False since '-' is neither a 'B' nor a 'W' nor a 'K'
+    board.select(5,1) #returns True for the 'B'lack player a.k.a Moskovites
+    board.selected    #returns (5,1)
