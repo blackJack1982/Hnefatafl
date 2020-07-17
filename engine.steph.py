@@ -35,8 +35,31 @@ class Board():
             self.board[        5, self.N-2] = 'B'
             self.board[        5,        5] = 'K'
         elif N == 9:
-            print ("Not implemented yet")
-            exit()
+            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+            for j in range (3,6):
+                self.board[       0, j] = 'B'
+                self.board[self.N-1, j] = 'B'
+                #self.board[       4, j] = 'W' if j in range(4,6) else '-'
+                #self.board[       6, j] = 'W' if j in range(6,8) else '-'
+            for i in range(3,6):
+                self.board[ i,        0] = 'B'
+                self.board[ i, self.N-1] = 'B'
+            self.board[       1,        4] = 'B'
+            self.board[       4,        1] = 'B'
+            self.board[self.N-2,        4] = 'B'
+            self.board[       4, self.N-2] = 'B'
+            for j in range(2,7):
+                self.board[4,j] = 'W' if j != 4 else 'K'
+            for i in range(2,7):
+                self.board[i,4] = 'W' if i != 4 else 'K'
 
     def select(self, i : int, j : int) -> bool:
         """
@@ -92,3 +115,7 @@ if __name__ == '__main__':
     board.select(0,0) #returns False since '-' is neither a 'B' nor a 'W' nor a 'K'
     board.select(5,1) #returns True for the 'B'lack player a.k.a Moskovites
     board.selected    #returns (5,1)
+
+    N=9
+    board = Board(N)
+    print (board.status())
