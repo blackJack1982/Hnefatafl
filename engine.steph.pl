@@ -59,7 +59,7 @@ class Board():
     def move(self, i: int, j:int) -> bool:
         pass
 
-    def status(self) -> None:
+    def status(self) -> str:
         """
         Gives the status of the board ==> Display it
         """
