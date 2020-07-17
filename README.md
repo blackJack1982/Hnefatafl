@@ -1,8 +1,10 @@
 # Hnefatafl
 Little game for becode as a team (Goa Dane &amp; Stéphane Devaux)
 
-## Links
+
 [![IMAGE Video explaining the rules of the game](http://img.youtube.com/vi/rwO3AN__kAw/0.jpg)](https://www.youtube.com/watch?v=rwO3AN__kAw)
+
+## Links
 - [play in the browser](http://www.lutanho.net/play/hnefatafl.html)
 - [the rules (Marvin's rules)](http://aagenielsen.dk/fetlar_rules_en.php)
 
