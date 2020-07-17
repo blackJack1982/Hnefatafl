@@ -22,3 +22,5 @@ Successfully installed urwid-2.1.0
 
 ## It's not cursed
 That's the idea
+
+Tried the website tutorial until step4. I need to find more informations.
