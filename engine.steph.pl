@@ -2,10 +2,21 @@
 
 class Board():
     def __init__(self, size : int):
+        """
+        Creates a dictionary of the size NxN (i.e. 11x11, 9x9) 
+        with tuple keys (i,j) and values :
+        - 'B' : Black or moskovite piece
+        - 'W' : White or swede piece
+        - 'K' : King of the White/swede
+        - '-' : Empty places
+        N.B. King's reserved locations will be saved as a list of tuples
+        First it initializes a NxN dict
+        Second, according to N's value pieces are set on the board accordingly
+        """
         self.N : int = size
         self.selected = None
         # create NXN board filled with '-'
-        self.board : dict = { (i,j):'-' for i in range(11) for j in range(11) }         
+        self.board : dict = {(i,j):'-' for i in range(self.N) for j in range(self.N)}      
         # Pre-positionning of the player's pieces
         if N == 11:
             for j in range (3,8):
@@ -28,6 +39,17 @@ class Board():
             exit()
 
     def select(self, i : int, j : int) -> bool:
+        """
+        Allow to select a player's piece 'W', 'B' or 'K'
+        and save its location into self.selected 
+        
+        for further use when moving with move()
+
+        Returns True if the select target (position i,j) is a piece
+        Returns False if the select target (position i,j) is empty
+        
+        N.B. return value will be usefull for the GUI
+        """
         if self.board[i,j] in 'BWK':
             self.selected = ( i, j )    
             return True
