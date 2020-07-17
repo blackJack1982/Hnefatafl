@@ -24,7 +24,7 @@ We'll take at least the day to do our own research into the different topics
 I will create 3 files : 
 - [engine.steph.pl](engine.steph.pl) : (6%) It currently contains the Board Class with a fixed 11x11 pattern, ability do initialize the board with the player's pieces, status() displays the board, ... 
 - [options.steph.py](options.steph.py) : (0%) I could try something with sys.argv but I want to try Docopt and see Argparse
-- and [gui.steph.py](gui.steph.py) : (0%) Basically looked briefly the links
+- and [gui.steph.py](gui.steph.py) : (0.03%) currently looking at [Urwid](urwid.md), (*stash:*~~Basically looked briefly at the links~~
 to share my initial trials and errors on these 3 fronts.
 
 #### Goa
