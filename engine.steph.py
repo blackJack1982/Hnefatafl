@@ -53,7 +53,7 @@ class Board():
             self.board[ self.N-2,        5] = 'B'
             self.board[        5, self.N-2] = 'B'
             self.board[        5,        5] = 'K'
-        elif N == 9:
+        elif self.N == 9:
             self.restricted_squares = [ (       0,        0), 
                                         (       0, self.N-1), 
                                         (       4,        4), 
@@ -197,7 +197,8 @@ class Board():
                 if (i,j) != self.selected:
                     output += f" '{self.board[i,j]}' "
                 else:
-                    output += f"\033[7m '{self.board[i,j]}' \033[0m"
+                    #output += f"\033[7m '{self.board[i,j]}' \033[0m"
+                    output += f"/{self.board[i,j]}\\"
             output += "\n"
         
         return output
