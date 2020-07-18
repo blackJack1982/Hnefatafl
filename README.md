@@ -29,9 +29,10 @@ We'll take at least the day to do our own research into the different topics
 
 #### Steph
 I will create 3 files : 
-- [engine.steph.py](engine.steph.py) : (6%) It currently contains the Board Class with a fixed 11x11 pattern, ability do initialize the board with the player's pieces, status() displays the board, ... 
-- [options.steph.py](options.steph.py) : (0%) I could try something with sys.argv but I want to try Docopt and see Argparse
-- and [gui.steph.py](gui.steph.py) : (0.03%) currently looking at [Urwid](urwid.md), (*stash:*~~Basically looked briefly at the links~~
+- [engine.steph.py](engine.steph.py) : (12%) It currently contains the Board Class with the dict board of size 11x11 or 9x9, the ability do initialize the board with the player's pieces, status() displays the board into a string, select() a piece to be moved, and move() if possible : not completely implemented yet.
+- [options.steph.py](options.steph.py) : (6%) I went for Docopt, so far I have an ugly POC that runs without error in the correct scenario.
+- and [gui.steph.py](gui.steph.py) : (1%) currently looking at [Urwid](urwid.md) Hijacked tutorial display refreshed status()
+
 to share my initial trials and errors on these 3 fronts.
 
 #### Goa
