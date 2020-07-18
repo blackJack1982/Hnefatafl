@@ -1,4 +1,16 @@
 #!/usr/bin/python3
+import sys #for exceptions ??
+
+class BoardError(Exception):
+    """Base class for exceptions in this module.
+       
+    Attributes :
+        message -- explanation of the error
+    """
+
+    def __init__(self, message : str):
+        self.message = message
+
 
 class Board():
     def __init__(self, size : int):
@@ -89,13 +101,13 @@ class Board():
         #
         #1.a) Check wether we are trying to move to a restricted square (king's places)
         if (x, y) in self.restricted_squares:
-            raise RuntimeError(f'You cannot move to ({x},{y}), it\'s a king\'s '
+            raise BoardError(f'You cannot move to ({x},{y}), it\'s a king\'s '
                                f'place/restricted area')
         #1.b) Check wether we are trying to move out of bonds (outside of the array)
         #     N.B. the selection of the move() coordinates should prevent such an issue
         #          from  happenning, but let's check it anyway
         if x < 0 or x >= self.N or y < 0 or y >= self.N:
-            raiseRuntimeError(f'You cannot move to ({x},{y}), it is out of bond.'
+            raise BoardError(f'You cannot move to ({x},{y}), it is out of bond.'
                               f'The board is {self.N}x{self.n} .')
         #1.c) Check wether the destination is horizontally or vertically reacheable
         #     either the lines (x and i) or the columns (y and j) must be similar
@@ -107,25 +119,67 @@ class Board():
             """
             #find out direction
             if y > j:
-                steps = range( j, y+1, 1)
+                steps = range( j+1, y+1, 1)
             else:
-                steps = range( j, y, -1)
-            print ('next horizontal steps : ', steps)
+                steps = range( j-1, y-1, -1)
+            
+            print ('next horizontal steps : ')
+            for pos in steps:
+                print (f'({i},{pos}) contains : {self.board[i,pos]}')
+                if self.board[i,pos] in ("B","W","K"):
+                    raise BoardError("You cannot move on or over another player's piece")
+                elif self.board[i,pos] in self.restricted_squares:
+                    #
+                    #/!\ if player --> we should have a player object or smthg
+                    #
+                    raise BoardError("You cannot move on or over a King's square"
+
         elif j == y: 
             """check vertical path is empty
                same column j == y, we'll move for i to x vertically
             """
+            #find out direction
             if x > i:
-                steps = range( i, x+1, 1)
+                steps = range( i+1, x+1, 1)
             else:
-                steps = range( i, x, -1)
-
-        else: #not a horizontal or vertical move
-            raise RuntimeError('Tried to move diagonally or the same place')
+                steps = range( i-1, x-1, -1)
+            
+            print ('next vertical steps:')
+            for pos in steps:
+                print (f'({pos},{j}) contains : {self.board[pos,j]}')
+                if self.board[pos, j] in ("B", "W", "K"):
+                    raise BoardError("You cannot move on or over another player's piece")
+                elif self.board[pos,j] in self.restricted_squares:
+                    #
+                    #/!\ if player --> we should have a player object or smthg
+                    #
+                    raise BoardError("You cannot move on or over a King's square"
+        else: 
+            #not a horizontal or vertical move
+            raise BoardError('Tried to move diagonally or the same place')
+            # /!\/!\/!\/!\/!\/!\/!\/!\ /!\/!\/!\/!\/!\/!\/!\/!\!\/!\/!\/!\/!\ /!\/!\#
+            #/!\/!\ Actually doesn't handle the same place ... VERY IMPORTANT /!\/!\#
+            # /!\/!\/!\/!\/!\/!\/!\/!\ /!\/!\/!\/!\/!\/!\/!\/!\!\/!\/!\/!\/!\ /!\/!\#
         
-        print ('next vertical steps:', steps)
-        for o in steps:
-            print (o)
+        #Teleport to new position
+        self.board[x,y] = self.board[i,j]
+        self.board[i,j] = "-"
+
+    def m(self, x : int, y : int) -> None:
+        """m(x,y)
+        to move and see updated location in python shell
+        """
+        self.move(x,y)
+        self.select(x,y)
+        print(self.status())
+
+    def s(self, x : int, y : int) -> None:
+        """s(x,y)
+        to select and see updated board in python shell
+        """
+        self.select(x,y)
+        print(self.status())
+
 
     def status(self) -> str:
         """
