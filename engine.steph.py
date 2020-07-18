@@ -84,20 +84,41 @@ class Board():
 
     def move(self, x: int, y:int) -> bool:
         i, j = self.selected
+        print (f'current: ({i},{j}) --> destination: ({x},{y})')
         #1.Check wether a move can be done
         #
         #1.a) Check wether we are trying to move to a restricted square (king's places)
         if (x, y) in self.restricted_squares:
-            raise RuntimeError(f'You cannot move to ({x},{y}), it\' a king\'s '
+            raise RuntimeError(f'You cannot move to ({x},{y}), it\'s a king\'s '
                                f'place/restricted area')
-        #1.b) Check wether the destination is horizontally or vertically reacheable
+        #1.b) Check wether we are trying to move out of bonds (outside of the array)
+        #     N.B. the selection of the move() coordinates should prevent such an issue
+        #          from  happenning, but let's check it anyway
+        if x < 0 or x >= self.N or y < 0 or y >= self.N:
+            raiseRuntimeError(f'You cannot move to ({x},{y}), it is out of bond.'
+                              f'The board is {self.N}x{self.n} .')
+        #1.c) Check wether the destination is horizontally or vertically reacheable
         #     either the lines (x and i) or the columns (y and j) must be similar
         #     to each other to move in the same column or same line
         #
-        if x == i: #will now move vertically
-            
-            pass
-        elif j == y: #will now move horizontally
+        if x == i: #will now check vertical path is empty           
+            #find out direction
+            if y > j:
+                steps = range( j, y, 1)
+            else:
+                steps = range( j, y, -1)
+            print ('next horizontal steps : ', steps)
+            for pos in steps:
+                pass
+        elif j == y: #will now check horizontal path is empty
+            if x > i:
+                steps = range( i, x+1, 1)
+            else:
+                steps = range( j, x-1, -1)
+        
+            print ('next vertical steps:', steps)
+            for o in steps:
+                print (0)
             pass
         else: #not a horizontal or vertical move
             raise RuntimeError('Tried to move diagonally or the same place')
