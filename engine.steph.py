@@ -27,6 +27,7 @@ class Board():
         """
         self.N : int = size
         self.selected = None
+        self.player = None
         # create NXN board filled with '-'
         self.board : dict = {(i,j):'-' for i in range(self.N) for j in range(self.N)}      
         # Pre-positionning of the player's pieces
@@ -90,6 +91,7 @@ class Board():
         """
         if self.board[i,j] in 'BWK':
             self.selected = ( i, j )    
+            self.player = self.board[i,j]
             return True
         else:
             return False
@@ -98,17 +100,16 @@ class Board():
         i, j = self.selected
         print (f'current: ({i},{j}) --> destination: ({x},{y})')
         #1.Check wether a move can be done
-        #
-        #1.a) Check wether we are trying to move to a restricted square (king's places)
-        if (x, y) in self.restricted_squares:
-            raise BoardError(f'You cannot move to ({x},{y}), it\'s a king\'s '
-                               f'place/restricted area')
+        #1)a) Check wether we are trying to move at the same place
+        if (x,y) == self.selected:
+            raise BoardError("Tried to move on the same spot "
+                             "(destination = current position)")
         #1.b) Check wether we are trying to move out of bonds (outside of the array)
         #     N.B. the selection of the move() coordinates should prevent such an issue
         #          from  happenning, but let's check it anyway
         if x < 0 or x >= self.N or y < 0 or y >= self.N:
             raise BoardError(f'You cannot move to ({x},{y}), it is out of bond.'
-                              f'The board is {self.N}x{self.n} .')
+                              f'The board is {self.N}x{self.N} .')
         #1.c) Check wether the destination is horizontally or vertically reacheable
         #     either the lines (x and i) or the columns (y and j) must be similar
         #     to each other to move in the same column or same line
@@ -126,13 +127,14 @@ class Board():
             print ('next horizontal steps : ')
             for pos in steps:
                 print (f'({i},{pos}) contains : {self.board[i,pos]}')
+                #print (f'self.player : {self.player}')
+                #print (f'self.restricted_squares : { self.restricted_squares }')
                 if self.board[i,pos] in ("B","W","K"):
                     raise BoardError("You cannot move on or over another player's piece")
-                elif self.board[i,pos] in self.restricted_squares:
-                    #
-                    #/!\ if player --> we should have a player object or smthg
-                    #
-                    raise BoardError("You cannot move on or over a King's square"
+                elif (i,pos) in self.restricted_squares:
+                    print ("in restricted square")
+                    if self.player != 'K':    
+                        raise BoardError("You cannot move on or over a King's square")
 
         elif j == y: 
             """check vertical path is empty
@@ -147,19 +149,17 @@ class Board():
             print ('next vertical steps:')
             for pos in steps:
                 print (f'({pos},{j}) contains : {self.board[pos,j]}')
+                #print (f'self.player : {self.player}')
+                #print (f'self.restricted_squares : { self.restricted_squares }')
                 if self.board[pos, j] in ("B", "W", "K"):
                     raise BoardError("You cannot move on or over another player's piece")
-                elif self.board[pos,j] in self.restricted_squares:
-                    #
-                    #/!\ if player --> we should have a player object or smthg
-                    #
-                    raise BoardError("You cannot move on or over a King's square"
+                elif (pos,j) in self.restricted_squares:
+                    print ("in restricted square")
+                    if  self.player != 'K':
+                        raise BoardError("You cannot move on or over a King's square")
         else: 
             #not a horizontal or vertical move
-            raise BoardError('Tried to move diagonally or the same place')
-            # /!\/!\/!\/!\/!\/!\/!\/!\ /!\/!\/!\/!\/!\/!\/!\/!\!\/!\/!\/!\/!\ /!\/!\#
-            #/!\/!\ Actually doesn't handle the same place ... VERY IMPORTANT /!\/!\#
-            # /!\/!\/!\/!\/!\/!\/!\/!\ /!\/!\/!\/!\/!\/!\/!\/!\!\/!\/!\/!\/!\ /!\/!\#
+            raise BoardError('Tried to move diagonally')
         
         #Teleport to new position
         self.board[x,y] = self.board[i,j]
@@ -171,15 +171,21 @@ class Board():
         """
         self.move(x,y)
         self.select(x,y)
-        print(self.status())
+        self.stat()
 
     def s(self, x : int, y : int) -> None:
         """s(x,y)
         to select and see updated board in python shell
         """
         self.select(x,y)
-        print(self.status())
+        self.stat()
 
+    def stat(self) -> None:
+        """stat()
+        give  statsus() and board.selected
+        """
+        print(self.status())
+        print(f"self.selected : {self.selected}")
 
     def status(self) -> str:
         """
