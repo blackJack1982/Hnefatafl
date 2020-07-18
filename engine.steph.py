@@ -101,28 +101,31 @@ class Board():
         #     either the lines (x and i) or the columns (y and j) must be similar
         #     to each other to move in the same column or same line
         #
-        if x == i: #will now check vertical path is empty           
+        if i == x: 
+            """check horizontal path is empty 
+               same line i == x, we'll move from j to y horizontally
+            """
             #find out direction
             if y > j:
-                steps = range( j, y, 1)
+                steps = range( j, y+1, 1)
             else:
                 steps = range( j, y, -1)
             print ('next horizontal steps : ', steps)
-            for pos in steps:
-                pass
-        elif j == y: #will now check horizontal path is empty
+        elif j == y: 
+            """check vertical path is empty
+               same column j == y, we'll move for i to x vertically
+            """
             if x > i:
                 steps = range( i, x+1, 1)
             else:
-                steps = range( j, x-1, -1)
-        
-            print ('next vertical steps:', steps)
-            for o in steps:
-                print (0)
-            pass
+                steps = range( i, x, -1)
+
         else: #not a horizontal or vertical move
             raise RuntimeError('Tried to move diagonally or the same place')
-        pass
+        
+        print ('next vertical steps:', steps)
+        for o in steps:
+            print (o)
 
     def status(self) -> str:
         """
@@ -131,7 +134,10 @@ class Board():
         output =''
         for i in range(self.N):
             for j in range (self.N):
-                output += f" '{self.board[i,j]}' "
+                if (i,j) != self.selected:
+                    output += f" '{self.board[i,j]}' "
+                else:
+                    output += f"\033[7m '{self.board[i,j]}' \033[0m"
             output += "\n"
         
         return output
