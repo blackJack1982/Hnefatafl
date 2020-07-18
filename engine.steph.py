@@ -19,6 +19,12 @@ class Board():
         self.board : dict = {(i,j):'-' for i in range(self.N) for j in range(self.N)}      
         # Pre-positionning of the player's pieces
         if self.N == 11:
+            self.restricted_squares = [ (       0,        0), 
+                                        (       0, self.N-1), 
+                                        (       5,        5), 
+                                        (self.N-1,        0), 
+                                        (self.N-1, self.N-1)]
+
             for j in range (      3, 8):
                 self.board[       0, j] = 'B'
                 self.board[self.N-1, j] = 'B'
@@ -35,15 +41,12 @@ class Board():
             self.board[        5, self.N-2] = 'B'
             self.board[        5,        5] = 'K'
         elif N == 9:
-            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
-            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
-            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
-            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
-            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
-            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
-            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
-            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
-            # '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+            self.restricted_squares = [ (       0,        0), 
+                                        (       0, self.N-1), 
+                                        (       4,        4), 
+                                        (self.N-1,        0), 
+                                        (self.N-1, self.N-1)]
+
             for j in range (3,6):
                 self.board[       0, j] = 'B'
                 self.board[self.N-1, j] = 'B'
@@ -79,7 +82,25 @@ class Board():
         else:
             return False
 
-    def move(self, i: int, j:int) -> bool:
+    def move(self, x: int, y:int) -> bool:
+        i, j = self.selected
+        #1.Check wether a move can be done
+        #
+        #1.a) Check wether we are trying to move to a restricted square (king's places)
+        if (x, y) in self.restricted_squares:
+            raise RuntimeError(f'You cannot move to ({x},{y}), it\' a king\'s '
+                               f'place/restricted area')
+        #1.b) Check wether the destination is horizontally or vertically reacheable
+        #     either the lines (x and i) or the columns (y and j) must be similar
+        #     to each other to move in the same column or same line
+        #
+        if x == i: #will now move vertically
+            
+            pass
+        elif j == y: #will now move horizontally
+            pass
+        else: #not a horizontal or vertical move
+            raise RuntimeError('Tried to move diagonally or the same place')
         pass
 
     def status(self) -> str:
@@ -90,7 +111,7 @@ class Board():
         for i in range(self.N):
             for j in range (self.N):
                 output += f" '{self.board[i,j]}' "
-            output += '\n'
+            output += "\n"
         
         return output
 
