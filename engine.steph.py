@@ -32,12 +32,35 @@ class Board():
         self.board : dict = {(i,j):'-' for i in range(self.N) for j in range(self.N)}      
         # Pre-positionning of the player's pieces
         if self.N == 11:
+    
             self.restricted_squares = [ (       0,        0), 
                                         (       0, self.N-1), 
                                         (       5,        5), 
                                         (self.N-1,        0), 
                                         (self.N-1, self.N-1)]
+            blues = [(0, 3) ,  (0, 4),  (0, 5),  (0, 6),  (0, 7),  (1, 5),  
+                     (3, 0) , (3, 10),  (4, 0), (4, 10),  (5, 0),  (5, 1),  
+                     (5, 9) , (5, 10),  (6, 0), (6, 10),  (7, 0), (7, 10), 
+                     (9, 5) , (10, 3), (10, 4), (10, 5), (10, 6), (10, 7)]
+            whites = [(3, 5),  (4, 4),  (4, 5),  (4, 6),  (5, 3),  (5, 4), 
+                      (5, 6),  (5, 7),  (6, 4),  (6, 5),  (6, 6),  (7, 5)]
+            king = 5,5
+            
+            for blue_piece in blues:
+                self.board[blue_piece] = 'B'
+            for white_piece in whites:
+                self.board[white_piece] = 'W'
+            self.board[king] = 'K'
 
+
+            """    #let's capture it :
+            >>> N = 11
+            >>> board = Board(N)
+            >>> blues = [ (v,w) for v in range(N) for w in range (N) if board.board[v,w] =='B' ]
+            >>> whites = [ (v,w) for v in range(N) for w in range (N) if board.board[v,w] =='W' ]
+            
+            
+            #Old way of manually drawing the board
             for j in range (      3, 8):
                 self.board[       0, j] = 'B'
                 self.board[self.N-1, j] = 'B'
@@ -53,7 +76,32 @@ class Board():
             self.board[ self.N-2,        5] = 'B'
             self.board[        5, self.N-2] = 'B'
             self.board[        5,        5] = 'K'
+            """
         elif self.N == 9:
+            self.restricted_squares = [ (       0,        0), 
+                                        (       0, self.N-1), 
+                                        (       4,        4), 
+                                        (self.N-1,        0), 
+                                        (self.N-1, self.N-1)]
+
+            blues = [(0, 3), (0, 4), (0, 5), (1, 4), (3, 0), (3, 8), (4, 0), (4, 1), 
+                     (4, 7), (4, 8), (5, 0), (5, 8), (7, 4), (8, 3), (8, 4), (8, 5)]
+            whites = [(2, 4), (3, 4), (4, 2), (4, 3), (4, 5), (4, 6), (5, 4), (6, 4)]
+            king = 4,4
+
+            for blue_piece in blues:
+                self.board[blue_piece] = 'B'
+            for white_piece in whites:
+                self.board[white_piece] = 'W'
+            self.board[king] = 'K'
+
+            """Old way of filling  the array.
+            Now I litterary give the positions collected trough :
+            #blues = [ (v,w) for v in range(9) for w in range (9) if board.board[v,w] =='B' ]
+            #whites = [ (v,w) for v in range(9) for w in range (9) if board.board[v,w] =='W' ]
+            #
+
+            #Initial way of setting the pieces acording to brute force drawing trough loops
             self.restricted_squares = [ (       0,        0), 
                                         (       0, self.N-1), 
                                         (       4,        4), 
@@ -76,6 +124,7 @@ class Board():
                 self.board[4,j] = 'W' if j != 4 else 'K'
             for i in range(2,7):
                 self.board[i,4] = 'W' if i != 4 else 'K'
+            """
 
     def select(self, i : int, j : int) -> bool:
         """
