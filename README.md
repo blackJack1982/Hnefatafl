@@ -6,7 +6,7 @@ Little game for becode as a team (Goa Dane &amp; Stéphane Devaux)
 
 ## Links
 - [play in the browser](http://www.lutanho.net/play/hnefatafl.html)
-- [the rules)](http://aagenielsen.dk/fetlar_rules_en.php)
+- [the rules](http://aagenielsen.dk/fetlar_rules_en.php)
 
 ## How to proceed
 
