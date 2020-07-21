@@ -212,6 +212,8 @@ class Board():
         #Teleport to new position
         self.board[x,y] = self.board[i,j]
         self.board[i,j] = "-" if (i,j) not in self.restricted_squares else "/"
+        self.destination = None
+        
 
        
         #2) Some rules have to be implemented here
