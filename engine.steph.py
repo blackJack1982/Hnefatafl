@@ -15,7 +15,7 @@ class BoardError(Exception):
 class Board():
 
     TYPES : dict = {
-            9 : {
+            "9x9" : {
                   'restricted_squares' : [ (   0,   0), 
                                            (   0, 9-1), 
                                            (   4,   4), 
@@ -30,7 +30,7 @@ class Board():
                   'whites' : [(2, 4), (3, 4), (4, 2), (4, 3), (4, 5), (4, 6), (5, 4), (6, 4)],
                   'king' : (4,4)
                 },
-            11:{
+            "11x11" : {
                   'restricted_squares' : [ (    0,    0), 
                                            (    0, 11-1), 
                                            (    5,    5), 
@@ -50,10 +50,24 @@ class Board():
                                 (5, 3),  (5, 4),  (5, 6),  (5, 7),
                                 (6, 4),  (6, 5),  (6, 6),  (7, 5)],
                   'king' : (5,5)
+                },
+            "target1": {
+                  'restricted_squares' : [ (    0,    0), 
+                                           (    0, 11-1), 
+                                           (    5,    5), 
+                                           ( 11-1,    0), 
+                                           ( 11-1, 11-1)],
+                  'winning_squares'    : [ (    0,    0), 
+                                           (    0, 11-1), 
+                                           ( 11-1,    0), 
+                                           ( 11-1, 11-1)],
+                  'blues'  : [ (7,1), (5,3), (7,5), (9,3)],   
+                  'whites' : [ (7,2), (6,3), (7,4)] 
+ 
                 }
     }
     
-    def __init__(self, size : int):
+    def __init__(self, size : int, type=None):
         """
         Creates a dictionary of the size NxN (i.e. 11x11, 9x9) 
         with tuple keys (i,j) and values :
@@ -70,24 +84,40 @@ class Board():
         self.selected = None
         self.player = None
         
+        if type is None:
+            if N == 9:
+                self.type = "9x9"
+            elif N == 11:
+                self.type = "11x11"
+        else:
+            self.type = type
+
         # create NXN board filled with '-'
         self.board : dict = {(i,j):'-' for i in range(self.N) for j in range(self.N)}      
        
         # Pre-positionning of the player's pieces
-        self.restricted_squares = self.TYPES[self.N]['restricted_squares']
-        self.winning_squares    = self.TYPES[self.N]['winning_squares']
-        blues                   = self.TYPES[self.N]['blues']
-        whites                  = self.TYPES[self.N]['whites']
-        king                    = self.TYPES[self.N]['king']
+        self.restricted_squares = self.TYPES[self.type]['restricted_squares']
+        self.winning_squares    = self.TYPES[self.type]['winning_squares']
 
         for restricted in self.restricted_squares:
             self.board[restricted] = '/'
-        for blue_piece in blues:
-            self.board[blue_piece] = 'B'
-        for white_piece in whites:
-            self.board[white_piece] = 'W'
+        
+        if "blues" in self.TYPES[self.type]:
+            blues = self.TYPES[self.type]['blues']
             
-        self.board[king] = 'K'
+            for blue_piece in blues:
+                self.board[blue_piece] = 'B'
+        
+        if "whites" in self.TYPES[self.type]:
+            whites  = self.TYPES[self.type]['whites']
+            
+            for white_piece in whites:
+                self.board[white_piece] = 'W'
+            
+        if "king" in self.TYPES[self.type]:
+            king = self.TYPES[self.type]['king']
+            
+            self.board[king] = 'K'
 
 
     def select(self, i : int, j : int) -> bool:
@@ -172,46 +202,87 @@ class Board():
                         raise BoardError("You cannot move on or over a King's square")
         else: 
             raise BoardError('Tried to move diagonally')
+ 
         
-        #2) Some rules have to be implemented here
-        #   e.g. : "Pieces can only be captured if the trap is closed by the 
-        #           agressor's move"
-        #    - King and pieces have different rules, let's do the common rule
-        #    - A piece will be capture when :
-        #      - an opponent piece just made a move that results in one or more
-        #        neighbours ('W' or 'B') being stuck between 2 obstacles
-        #        *Obstacle : another player's piece or a King's restricted square
-        
-        #1)a) Simple capture implementation
-        #     N.B. We'll check any case, even though we know wether we're
-        #     moving vertically or horizontally
-        #
-        #1)1) - Check wether we have ennemies pieces immediatly 
-        #      next to our destination vertically and horizontally
-        #
-        # Add neighbhours within boundaries to the list to_check
-        to_check : list = []
-
-        #Horizontally
-        if y-1 >= 0 :
-            to_check.append(( x, y-1) )
-        
-        if y+1 < self.N :
-            to_check.append( (x, y+1))
-        
-        #vertically
-        if x-1 >= 0 :
-            to_check.append( (x-1, y) )
-        
-        if  x+1 < self.N :
-            to_check.append( ( x+1, y ) )
-
-        self.to_check = to_check ##temporary
-
-
         #Teleport to new position
         self.board[x,y] = self.board[i,j]
         self.board[i,j] = "-" if (i,j) not in self.restricted_squares else "/"
+
+       
+        #2) Some rules have to be implemented here
+        #
+        # Will check to the LEFT, RIGHT, ABOVE and BELLOW the new position
+        # to see if if is inhabitted by an ennemy piece
+        #   - so if it's out of boundaries we do nothing
+        #   -    if it's not an ennemy we do nothing
+        # 
+        neighbours : list = [ (x, y-1), # LEFT
+                              (x, y+1), # RIGHT
+                              (x-1, y), # ABOVE
+                              (x+1, y)  # BELOW
+        ]
+
+        piece = self.board[x,y] #player who is moving, it's the agressor's move
+        for pos in neighbours:
+
+            n, m = pos  # n = line
+                        # m = column
+
+            #Check that we are not out of boundaries
+            if n < 0   or   n >= self.N  or  m < 0  or  m >= self.N  :
+               continue  #goes to the next neighbour (next cycle of the loop directly)
+
+            #check this is a player
+            square = self.board[n,m] 
+            player = None
+
+            if square in ('W','B','K'):
+                player = square
+            else:
+                continue #goes to the next neighbour square
+
+            #Define the ennemies
+            ennemies : list = []
+
+            if player in ('W','K'):    #'W'hites (swedes 'W' peons or 'K' King)
+                ennemies.append('B')   # have only one ennemy the 'B'lacks (moskovites)
+            
+            elif player == 'B':          #'B'lacks (moskovites) don't have a king
+                ennemies = [ 'W', 'K' ]  # and have 2 ennemies the 'W'hites peons and the 'K'ing
+
+            from pprint import pprint 
+            
+            pprint( [ f"At pos({n,m} ", player,ennemies])
+            #Check LEFT and RIGHT for an HORIZONTAL capture
+            #   Also check the boudaries
+            #
+            left  : bool = m-1 >= 0 and m-1 < self.N and self.board[n, m-1] in ennemies
+            right : bool = m+1 >= 0 and m+1 < self.N and self.board[n, m+1] in ennemies
+            horizontal : bool = left and right
+
+            #Check ABOVE and BELOW for a VERTICAL capture
+            #   Also check the boundaries
+            #
+            above : bool = n-1 >= 0 and n-1 < self.N and self.board[n-1, m] in ennemies
+            below : bool = n+1 >= 0 and n+1 < self.N and self.board[n+1, m] in ennemies
+            vertical : bool = above and below
+
+            pprint ( { "left" : left, "right" : right, "above" : above, "below" : below } )
+            output : str = ""
+            if player == 'K' and horizontal and vertical :  #King is captured
+                output += "the 'K'ing is captured horizontally and vertically"
+
+            elif horizontal : #horizontal neighbour's pieces are capturing this piece
+                output += f"the player '{player}' is captured horizontally"
+
+            elif vertical : #vertical neighbour's pieces are capturing this piece
+                output += f"the player '{player}' is captured vertically"
+
+            #So far so good, send the output !
+            if len(output) > 0 :
+                print (f"At position ({n,m}{output}")
+
+
 
     def check_rules(self) -> str:
         """
@@ -239,7 +310,7 @@ class Board():
 
         first : str = '  i/j'
         for i in range(self.N):
-            first += f'  {i}  '
+            first += f' {i:>2}  '
         output += first+"\n"
 
         for i in range(self.N):
@@ -305,160 +376,24 @@ if __name__ == '__main__':
     board.selected    #returns (5,1)
     board.status()
     
+    print( "\n" * 25 )
     #Smaller board
+    print ("N=9")
     N=9
+    print ("board = Board(N)")
     board = Board(N)
+    print("print (board.status())")
     print (board.status())
+    print("board.s(4,3)")
     board.s(4,3)
+    print("board.m(1,3)")
     board.m(1,3)
+    print("board.s(4,4)")
     board.s(4,4)
-    board.s(4,4)
+    print("board.m(4,3)")
     board.m(4,3)
+    print("board.m(2,3)")
     board.m(2,3)
-    board.m(2,0)
-    board.m(0,0)
     """
-#python3 -i ./engine.steph.py
->>> board = Board(11)
->>> board.s(5,3)
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
- '-'  '-'  '-'  '-'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  'B'  '-'  /W\  'W'  'K'  'W'  'W'  '-'  'B'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
-
-self.selected : (5, 3)
->>> board.m(1,3)
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
- '-'  '-'  '-'  /W\  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  'B'  '-'  '-'  'W'  'K'  'W'  'W'  '-'  'B'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
-
-self.selected : (1, 3)
->>> board.s(5,4)
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
- '-'  '-'  '-'  'W'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  'B'  '-'  '-'  /W\  'K'  'W'  'W'  '-'  'B'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
-
-self.selected : (5, 4)
->>> board.m(5,2)
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
- '-'  '-'  '-'  'W'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  'B'  /W\  '-'  '-'  'K'  'W'  'W'  '-'  'B'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
-
-self.selected : (5, 2)
->>> board.s(5,5)
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
- '-'  '-'  '-'  'W'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  'B'  'W'  '-'  '-'  /K\  'W'  'W'  '-'  'B'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
-
-self.selected : (5, 5)
->>> board.s(5,3)
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
- '-'  '-'  '-'  'W'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  'B'  'W'  '-'  '-'  /K\  'W'  'W'  '-'  'B'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
-
-self.selected : (5, 5)
->>> board.m(5,3)
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
- '-'  '-'  '-'  'W'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  'B'  'W'  /K\  '-'  '/'  'W'  'W'  '-'  'B'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
-
-self.selected : (5, 3)
->>> board.m(2,3)
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
- '-'  '-'  '-'  'W'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  /K\  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  'B'  'W'  '-'  '-'  '/'  'W'  'W'  '-'  'B'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
-
-self.selected : (2, 3)
->>> board.m(2,0)
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
- '-'  '-'  '-'  'W'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- /K\  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  'B'  'W'  '-'  '-'  '/'  'W'  'W'  '-'  'B'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
-
-self.selected : (2, 0)
->>> board.m(0,0)
- /K\  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
- '-'  '-'  '-'  'W'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  'B'  'W'  '-'  '-'  '/'  'W'  'W'  '-'  'B'  'B'
- 'B'  '-'  '-'  '-'  'W'  'W'  'W'  '-'  '-'  '-'  'B'
- 'B'  '-'  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  'B'
- '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
- '-'  '-'  '-'  '-'  '-'  'B'  '-'  '-'  '-'  '-'  '-'
- '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
-
-self.selected : (0, 0)
->>>
-"""
+    #python3 -i ./engine.steph.py
+    """
