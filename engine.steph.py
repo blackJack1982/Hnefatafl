@@ -228,11 +228,11 @@ class Board():
             n, m = pos  # n = line
                         # m = column
 
-            #Check that we are not out of boundaries
+            """Check that we are not out of boundaries"""
             if n < 0   or   n >= self.N  or  m < 0  or  m >= self.N  :
                continue  #goes to the next neighbour (next cycle of the loop directly)
 
-            #check this is a player
+            """Check this is a player"""
             square = self.board[n,m] 
             player = None
 
@@ -241,7 +241,7 @@ class Board():
             else:
                 continue #goes to the next neighbour square
 
-            #Define the ennemies
+            """Define the ennemies"""
             ennemies : list = []
 
             if player in ('W','K'):    #'W'hites (swedes 'W' peons or 'K' King)
@@ -250,35 +250,39 @@ class Board():
             elif player == 'B':          #'B'lacks (moskovites) don't have a king
                 ennemies = [ 'W', 'K' ]  # and have 2 ennemies the 'W'hites peons and the 'K'ing
 
-            from pprint import pprint 
+            #from pprint import pprint 
             
-            pprint( [ f"At pos({n,m} ", player,ennemies])
-            #Check LEFT and RIGHT for an HORIZONTAL capture
-            #   Also check the boudaries
-            #
+            #pprint( [ f"At pos({n,m} ", player,ennemies])
+            
+            """Check LEFT and RIGHT for an HORIZONTAL capture
+               Also check the boudaries
+            """
             left  : bool = m-1 >= 0 and m-1 < self.N and self.board[n, m-1] in ennemies
             right : bool = m+1 >= 0 and m+1 < self.N and self.board[n, m+1] in ennemies
             horizontal : bool = left and right
 
-            #Check ABOVE and BELOW for a VERTICAL capture
-            #   Also check the boundaries
-            #
+            """Check ABOVE and BELOW for a VERTICAL capture
+               Also check the boundaries
+            """
             above : bool = n-1 >= 0 and n-1 < self.N and self.board[n-1, m] in ennemies
             below : bool = n+1 >= 0 and n+1 < self.N and self.board[n+1, m] in ennemies
             vertical : bool = above and below
 
-            pprint ( { "left" : left, "right" : right, "above" : above, "below" : below } )
+            #pprint ( { "left" : left, "right" : right, "above" : above, "below" : below } )
+            
             output : str = ""
             if player == 'K' and horizontal and vertical :  #King is captured
                 output += "the 'K'ing is captured horizontally and vertically"
 
             elif horizontal : #horizontal neighbour's pieces are capturing this piece
+                self.board[n,m] = '-' if (n,m) not in self.restricted_squares else '/'
                 output += f"the player '{player}' is captured horizontally"
 
             elif vertical : #vertical neighbour's pieces are capturing this piece
+                self.board[n,m] = '-' if (n,m) not in self.restricted_squares else '/'
                 output += f"the player '{player}' is captured vertically"
 
-            #So far so good, send the output !
+            """So far so good, send the output ! """
             if len(output) > 0 :
                 print (f"At position ({n,m}{output}")
 
@@ -395,5 +399,54 @@ if __name__ == '__main__':
     print("board.m(2,3)")
     board.m(2,3)
     """
-    #python3 -i ./engine.steph.py
-    """
+#python3 -i ./engine.steph.py
+>>> board = Board(11,'target1')
+>>> board.stat()
+  i/j  0    1    2    3    4    5    6    7    8    9   10
+   0  '/'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '/'
+   1  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   2  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   3  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   4  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   5  '-'  '-'  '-'  'B'  '-'  '/'  '-'  '-'  '-'  '-'  '-'
+   6  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   7  '-'  'B'  'W'  '-'  'W'  'B'  '-'  '-'  '-'  '-'  '-'
+   8  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   9  '-'  '-'  '-'  'B'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+  10  '/'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '/'
+
+self.selected : None
+>>> board.s(9,3)
+  i/j  0    1    2    3    4    5    6    7    8    9   10
+   0  '/'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '/'
+   1  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   2  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   3  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   4  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   5  '-'  '-'  '-'  'B'  '-'  '/'  '-'  '-'  '-'  '-'  '-'
+   6  '-'  '-'  '-'  'W'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   7  '-'  'B'  'W'  '-'  'W'  'B'  '-'  '-'  '-'  '-'  '-'
+   8  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   9  '-'  '-'  '-'  /B\  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+  10  '/'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '/'
+
+self.selected : (9, 3)
+>>> board.m(7,3)
+At position ((7, 2)the player 'W' is captured horizontally
+At position ((7, 4)the player 'W' is captured horizontally
+At position ((6, 3)the player 'W' is captured vertically
+  i/j  0    1    2    3    4    5    6    7    8    9   10
+   0  '/'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '/'
+   1  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   2  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   3  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   4  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   5  '-'  '-'  '-'  'B'  '-'  '/'  '-'  '-'  '-'  '-'  '-'
+   6  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   7  '-'  'B'  '-'  /B\  '-'  'B'  '-'  '-'  '-'  '-'  '-'
+   8  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+   9  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'
+  10  '/'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '-'  '/'
+
+self.selected : (7, 3)
+"""
