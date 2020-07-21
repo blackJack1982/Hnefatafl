@@ -21,6 +21,10 @@ class Board():
                                            (   4,   4), 
                                            ( 9-1,   0), 
                                            ( 9-1, 9-1)],
+                  'winning_squares'    : [ (   0,   0), 
+                                           (   0, 9-1), 
+                                           ( 9-1,   0), 
+                                           ( 9-1, 9-1)], 
                   'blues'  : [(0, 3), (0, 4), (0, 5), (1, 4), (3, 0), (3, 8), (4, 0),  (4, 1), 
                               (4, 7), (4, 8), (5, 0), (5, 8), (7, 4), (8, 3), (8, 4),  (8, 5)],
                   'whites' : [(2, 4), (3, 4), (4, 2), (4, 3), (4, 5), (4, 6), (5, 4), (6, 4)],
@@ -30,6 +34,10 @@ class Board():
                   'restricted_squares' : [ (    0,    0), 
                                            (    0, 11-1), 
                                            (    5,    5), 
+                                           ( 11-1,    0), 
+                                           ( 11-1, 11-1)],
+                  'winning_squares'    : [ (    0,    0), 
+                                           (    0, 11-1), 
                                            ( 11-1,    0), 
                                            ( 11-1, 11-1)],
                   'blues'  : [ ( 0, 3),  (0, 4),  (0, 5),  (0, 6),  
@@ -67,6 +75,7 @@ class Board():
        
         # Pre-positionning of the player's pieces
         self.restricted_squares = self.TYPES[self.N]['restricted_squares']
+        self.winning_squares    = self.TYPES[self.N]['winning_squares']
         blues                   = self.TYPES[self.N]['blues']
         whites                  = self.TYPES[self.N]['whites']
         king                    = self.TYPES[self.N]['king']
@@ -104,7 +113,12 @@ class Board():
     def move(self, x: int, y:int) -> bool:
         # (i,j) == current position
         # (x,y) == destination
-        i, j = self.selected
+
+        #0. Check wether an origin (i,j) has been selected trough select()
+        if self.selected != None:
+            i, j = self.selected
+        else:
+            raise BoardError("Please select a piece to be moved")
         
         #1.Check wether a move can be done
         #1)a) Check wether we are trying to move at the same place
@@ -159,17 +173,77 @@ class Board():
         else: 
             raise BoardError('Tried to move diagonally')
         
+        #2) Some rules have to be implemented here
+        #   e.g. : "Pieces can only be captured if the trap is closed by the 
+        #           agressor's move"
+        #    - King and pieces have different rules, let's do the common rule
+        #    - A piece will be capture when :
+        #      - an opponent piece just made a move that results in one or more
+        #        neighbours ('W' or 'B') being stuck between 2 obstacles
+        #        *Obstacle : another player's piece or a King's restricted square
+        
+        #1)a) Simple capture implementation
+        #     N.B. We'll check any case, even though we know wether we're
+        #     moving vertically or horizontally
+        #
+        #1)1) - Check wether we have ennemies pieces immediatly 
+        #      next to our destination vertically and horizontally
+        #
+        # Add neighbhours within boundaries to the list to_check
+        to_check : list = []
+
+        #Horizontally
+        if y-1 >= 0 :
+            to_check.append(( x, y-1) )
+        
+        if y+1 < self.N :
+            to_check.append( (x, y+1))
+        
+        #vertically
+        if x-1 >= 0 :
+            to_check.append( (x-1, y) )
+        
+        if  x+1 < self.N :
+            to_check.append( ( x+1, y ) )
+
+        self.to_check = to_check ##temporary
+
+
         #Teleport to new position
         self.board[x,y] = self.board[i,j]
         self.board[i,j] = "-" if (i,j) not in self.restricted_squares else "/"
 
+    def check_rules(self) -> str:
+        """
+        Check the rules of the games 1 by 1
+        Will tell us if there is a winner, if a piece was taken ...
+        """
+        output : str = ""
+
+        #1) King in a king's square win if on the edges
+        for i in range(self.N):
+            for j in range(self.N):
+                if self.board[i,j] == 'K': 
+                    if (i,j) in self.winning_squares:
+                        output += "The whites won : the King is in a winning square"
+
+        #2)
+
+        return output
 
     def status(self) -> str:
         """
         Gives the status of the board ==> Display it
         """
-        output =''
+        output : str =''
+
+        first : str = '  i/j'
         for i in range(self.N):
+            first += f'  {i}  '
+        output += first+"\n"
+
+        for i in range(self.N):
+            output += f' {i:>3} '
             for j in range (self.N):
                 if (i,j) != self.selected:
                     output += f" '{self.board[i,j]}' "
@@ -230,14 +304,21 @@ if __name__ == '__main__':
     board.select(5,1) #returns True for the 'B'lack player a.k.a Moskovites
     board.selected    #returns (5,1)
     board.status()
-    board.m(5,0)
     
     #Smaller board
     N=9
     board = Board(N)
     print (board.status())
+    board.s(4,3)
+    board.m(1,3)
+    board.s(4,4)
+    board.s(4,4)
+    board.m(4,3)
+    board.m(2,3)
+    board.m(2,0)
+    board.m(0,0)
     """
-#python3 -i ./engine.step.py
+#python3 -i ./engine.steph.py
 >>> board = Board(11)
 >>> board.s(5,3)
  '/'  '-'  '-'  'B'  'B'  'B'  'B'  'B'  '-'  '-'  '/'
