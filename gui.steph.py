@@ -1,14 +1,16 @@
 #!/usr/bin/python3
 import urwid
-#from "engine.steph" import Board
+from engine_steph import Board, BoardError
 #the above doesn't work so :
+"""
 import imp
 with open('engine.steph.py') as fp:
     engine = imp.load_module(
         'Board', fp, 'engine.steph.py',
         ('.py', 'rb', imp.PY_SOURCE)
     )
-#SRC
+"""
+##SRC
 #Unashamedly copied and modified from : https://guru.net.nz/blog/python/ncurses/video/2015/01/21/use-curses-dont-swear.html
 
 # Set up our color scheme
@@ -62,9 +64,24 @@ def get_new_status():
     output.append( ('default','\n') )
     output.append( ('default', board.status()) )
     output.append( ('default', '\n') )
-    output.append( ('default', u'board.selected : ') )
-    output.append( ('default', f'({board.selected[0]},{board.selected[1]})') )
-                       
+    #output.append( ('default', u'board.selected : ') )
+    output.append( ('default', f"You are player : '{PLAYER}' ") )
+
+    if board.selected is not None:
+        output.append( ('default', f"at pos : ({board.selected[0]},{board.selected[1]})") )
+    output.append( ('default', "\n") )
+
+    if MODE == "target" :
+        output.append( ('default', "you can use the letters g<-, j\/, k/\, l-> to select a target destination") )
+        output.append( ('default', "\nyou can press m when you want to move to the | | target"))
+
+    if MODE == "select" :
+        output.append( ('default', "you can use the letters g<-, j\/, k/\, l-> to select piece") )
+        output.append( ('default', "\nyou can press s when you want to select your piece"))
+
+
+
+
     text = urwid.Text(output)
     return output
 
@@ -73,17 +90,79 @@ def handle_input(key):
         quote_box.base_widget.set_text(('getting status', 'Gettingn new status ...'))
         main_loop.draw_screen()
         quote_box.base_widget.set_text(get_new_status())
+
+    elif key == 'h':
+        board.target("LEFT")
+        quote_box.base_widget.set_text(('getting status', 'Gettingn new status ...'))
+        main_loop.draw_screen()
+        quote_box.base_widget.set_text(get_new_status())
+ 
+    elif key == 'l':
+        board.target("RIGHT")
+        quote_box.base_widget.set_text(('getting status', 'Gettingn new status ...'))
+        main_loop.draw_screen()
+        quote_box.base_widget.set_text(get_new_status())
+ 
+    elif key == 'j':
+        board.target("DOWN")
+        quote_box.base_widget.set_text(('getting status', 'Gettingn new status ...'))
+        main_loop.draw_screen()
+        quote_box.base_widget.set_text(get_new_status())
+ 
+    elif key == 'k':
+        board.target("UP")
+        quote_box.base_widget.set_text(('getting status', 'Gettingn new status ...'))
+        main_loop.draw_screen()
+        quote_box.base_widget.set_text(get_new_status())
     
+    elif key == 'm':
+        x,y = board.destination
+
+        try:
+            board.move(x,y)
+            MODE = "select"
+            status = get_new_status()
+        except BoardError as e:
+            status = get_new_status()
+            status.append( ('default', f"\n\nERROR : {e}") )
+
+        
+        quote_box.base_widget.set_text(('getting status', 'Gettingn new status ...'))
+        main_loop.draw_screen()
+        quote_box.base_widget.set_text(status)
+    
+    elif  board.selected is None and key == 's':
+        i,j = board.destination
+
+        if board.select(i,j):
+            MODE = "target"
+            status = get_new_status()
+        else:
+            status = get_new_status()
+            status.append( ('default', "\n\nError: choose one of your pieces ('W','K','B')") )
+ 
+        quote_box.base_widget.set_text(('getting status', 'Gettingn new status ...'))
+        main_loop.draw_screen()
+        quote_box.base_widget.set_text(status)
+ 
     elif key == 'Q' or key == 'q':
         raise urwid.ExitMainLoop()
 
-N      : int = 9
+N      : int = 11
 PLAYER : str = "B"
-board = engine.Board(N)
+TYPE   : str = "target1"
+
+board = Board(N, TYPE)
 board.select(8,3)
 board.PLAYER = PLAYER
-#board.stat()
-#exit()
+
+MODE = 'select' 
+# target = we look for a destination
+# select = we chose a piece
+
+
+
+
 main_loop = urwid.MainLoop(layout, palette, unhandled_input=handle_input)
 
 main_loop.run()
