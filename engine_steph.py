@@ -68,7 +68,7 @@ class Board():
                 }
     }
     
-    def __init__(self, size : int, type=None):
+    def __init__(self, size : int, type=None, player : str = 'W'):
         """
         Creates a dictionary of the size NxN (i.e. 11x11, 9x9) 
         with tuple keys (i,j) and values :
