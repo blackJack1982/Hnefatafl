@@ -35,7 +35,7 @@ def check_options(args, debug=False):
         ret['EXIT']   = False
             
     elif args['type']:
-        if not args['<type>']: 
+        if not args['<type>'] or args['<type>'] not in Board.TYPES:
             msg : str = f"Available type/scenario :\n"
             for scenario in Board.TYPES:
                 msg += f" - {scenario}\n"
@@ -44,14 +44,19 @@ def check_options(args, debug=False):
             ret['EXIT'] = True
         else: 
             ret['TYPE'] = args['<type>']
-            if ret['TYPE'] == '11x11':
-                ret['N'] = 11
-            elif ret['TYPE'] == '9x9':
-                ret['N'] = 9
+            
+            if ret['TYPE'] not in Board.TYPES:
+                ret['MSG'] = "not a valid type"
+                ret['EXIT'] = True
             else:
-                ret['N'] = 11 # Yep seems to be the default value
-            ret['EXIT'] = False
-    
+                ret['EXIT'] = False
+                if ret['TYPE'] == '11x11':
+                    ret['N'] = 11
+                elif ret['TYPE'] == '9x9':
+                    ret['N'] = 9
+                else:
+                    ret['N'] = 11 # Yep seems to be the default value
+        
     elif args['--board'] :
         if not args['<NxN>'] or args['<NxN>'] not in ('9x9','11x11'):
             ret['EXIT'] = True
@@ -84,27 +89,37 @@ if __name__ == '__main__':
     PLAYER : str = None
 
     #0) Check parameters to define N, TYPE and/or PLAYER
-    #try:
-    ret = check_options( docopt(__doc__), debug=True )
-    #except DocoptExit as e:
-    #    print (f"{e}\n{__doc__}")
-    #    sys.exit()
-    
+    ret = check_options( docopt(__doc__))
+
     if ret['EXIT']:
         print (f"{ret['MSG']}")
         sys.exit()
     else:
         if ret['TYPE'] is not None and ret['N'] is not None :
-
-            N = ret['N']
             TYPE = ret['TYPE']
+            N    = ret['N']
             board = Board(N,TYPE)
         else:
             print (f'ERROR: some parameters are missing')
             sys.exit()
-    
     if ret['PLAYER'] is not None:
         PLAYER = ret['PLAYER']
-        
+    
+    #1) Create a GUI witht the board
+    '''
     print (f'N = {N}, TYPE = {TYPE}, PLAYER = {PLAYER}')        
+    board.stat()
+    '''
+    #Game logic in pure acii-mode to make out what to do
+    MODE='select'
+
+    print "press q [ENTER] or Q [ENTER] to leave whenever prompted for an input"
+
+    if PLAYER is not None:
+        print ""
+
+
+
+
+
 
