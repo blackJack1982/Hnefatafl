@@ -140,6 +140,7 @@ class Board():
         if self.board[i,j] in 'BWK':
             self.selected = ( i, j )    
             self.player = self.board[i,j]
+            self.destination = (3,3)
             return True
         else:
             return False
@@ -349,6 +350,9 @@ class Board():
             "LEFT"  : (  0, -1),
             "RIGHT" : (  0,  1)
         }
+
+        if self.destination is None:
+           self.destination = (3, 3)
 
         next = tuple(map(operator.add, self.destination, deltas[move])) ;
         x,y = next
