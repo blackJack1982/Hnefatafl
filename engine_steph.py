@@ -207,13 +207,15 @@ class Board():
                     if  self.player != 'K':
                         raise BoardError("You cannot move on or over a King's square")
         else: 
+            #import pdb ; pdb.set_trace()
             raise BoardError('Tried to move diagonally')
  
         
         #Teleport to new position
         self.board[x,y] = self.board[i,j]
         self.board[i,j] = "-" if (i,j) not in self.restricted_squares else "/"
-        self.destination = None
+        self.selected = None
+        self.destination = (3,3) #HARDCODED ???
         
 
        
@@ -229,6 +231,8 @@ class Board():
                               (x-1, y), # ABOVE
                               (x+1, y)  # BELOW
         ]
+
+        ret : str = ''
 
         piece = self.board[x,y] #player who is moving, it's the agressor's move
         for pos in neighbours:
@@ -291,9 +295,12 @@ class Board():
                 output += f"the player '{player}' is captured vertically"
 
             """So far so good, send the output ! """
+            #if len(output) > 0 :
+            #    print (f"At position ({n,m}{output}")
             if len(output) > 0 :
-                print (f"At position ({n,m}{output}")
+                ret += f"At position {n,m}{output}" + "\n"
 
+        return ret
 
 
     def check_rules(self) -> str:

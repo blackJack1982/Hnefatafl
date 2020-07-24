@@ -67,10 +67,11 @@ def handle_input(key):
         x,y = board.destination
             
         try:
-            board.move(x,y)
+            msg  = board.move(x,y)
             MODE = 'select'
         except BoardError as e:
-            print(e)
+           #import pdb; pdb.set_trace()
+            msg = str(e) + "\n"
             
         quote_box.base_widget.set_text(get_new_status(msg))
 
@@ -83,7 +84,7 @@ def handle_input(key):
 
 N      : int = 11
 PLAYER : str = "B"
-TYPE   : str = "target1"
+TYPE   : str = "11x11"
 
 board = Board(N, TYPE)
 board.select(8,3)
